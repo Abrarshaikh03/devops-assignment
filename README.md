@@ -119,10 +119,6 @@ These should be placed inside the `screenshots/` folder.
    - Systems Manager → Managed Instances  
    - Show instance registered with SSM.
 
-8. **08_app_logs.png** (optional)  
-   - SSM Session → run  
-     `sudo tail -n 200 /var/log/app.log`
-
 ---
 
 ## Notes
