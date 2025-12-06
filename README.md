@@ -1,129 +1,187 @@
-# DevOps Assignment – Private EC2 behind ALB using Terraform
+# 📘 DevOps Assignment – Private EC2 Behind ALB Using Terraform
 
-## Objective
-Deploy a Python application running in private EC2 instances behind an Application Load Balancer (ALB) using Terraform.
-The application listens on **port 8080** and provides:
-- `/` → returns a greeting  
-- `/health` → returns `ok`
+This repository delivers a complete AWS infrastructure built using **Terraform**, hosting a Python application running on **private EC2 instances** behind an **Application Load Balancer (ALLB)**.  
+The design demonstrates production-grade VPC architecture, Auto Scaling, IAM roles, and Infrastructure-as-Code best practices.
 
 ---
 
-## Project Structure
+# 🏗️ Architecture Overview
+
+### Components deployed:
+
+- **VPC (10.0.0.0/16)**
+  - 2× Public Subnets  
+  - 2× Private Subnets  
+- **Internet Gateway**
+- **Public Route Table**
+- **NAT Gateway + Elastic IP**
+- **Application Load Balancer**
+  - Listener on **80 → 8080**
+  - Target Group with health check `/health`
+- **Auto Scaling Group**
+- **Launch Template**
+- **IAM Role + Instance Profile**
+- **EC2 Instances in private subnets only**
+- **User Data** installs Python app on startup
+
+The deployed app returns:
+
+```
+Hello from Private EC2 behind ALB!
+```
+
+---
+
+# 📁 Repository Structure
 
 ```
 devops-assignment/
-├── app/                 # Python application (main.py)
-├── terraform/           # Terraform configuration files
-├── scripts/             # deploy.sh, test.sh, destroy.sh (optional)
-├── screenshots/         # AWS verification screenshots
-└── README.md            # Project documentation
+│
+├── app/
+│   └── main.py
+│
+├── scripts/
+│   ├── deploy.sh
+│   ├── destroy.sh
+│   └── test.sh
+│
+├── terraform/
+│   ├── vpc.tf
+│   ├── alb-sg.tf
+│   ├── sg.tf
+│   ├── iam.tf
+│   ├── userdata.sh
+│   ├── outputs.tf
+│   ├── providers.tf
+│   ├── variables.tf
+│   └── .terraform.lock.hcl
+│
+├── screenshots/
+│
+├── .gitignore
+└── README.md
 ```
 
-## How to Deploy the Infrastructure
+---
 
-### **1. Configure AWS CLI**
-Run this and enter your Access Key, Secret Key, region (`us-east-1`), and output format (`json`):
+# 🚀 1. Prerequisites
 
+Before deploying:
+
+### Install:
+- Terraform  
+- AWS CLI  
+- Python3  
+- Git  
+
+### Configure AWS:
 ```
 aws configure
 ```
 
+Required IAM permissions:
+- AdministratorAccess  
+
 ---
 
-### **2. Deploy the Infrastructure**
+# 🚀 2. Deploy Infrastructure
 
+### Clone repo:
 ```
-cd terraform
+git clone https://github.com/Abrarshaikh03/devops-assignment.git
+cd devops-assignment/terraform
+```
+
+### Initialize:
+```
 terraform init
-terraform plan -out plan.tfplan
-terraform apply "plan.tfplan"
 ```
 
-Terraform will create:
+### Validate:
+```
+terraform validate
+```
 
-- VPC (public + private subnets)
-- Internet Gateway
-- NAT Gateway
-- Route Tables
-- ALB + Target Group + Listener (port 80 → port 8080)
-- Security Groups
-- Launch Template with user_data
-- Auto Scaling Group
-- Private EC2 instances (no public IP)
-- IAM roles + SSM access
+### Plan:
+```
+terraform plan
+```
+
+### Apply:
+```
+terraform apply
+```
+
+Enter **yes** when prompted.
 
 ---
 
-### **3. Test the Application**
-
-Get the ALB DNS:
+# 🌍 3. Get ALB DNS
 
 ```
-terraform output -raw alb_dns
+terraform output alb_dns
 ```
-
-Test:
-
-```
-curl http://<ALB_DNS>/
-curl http://<ALB_DNS>/health
-```
-
-Expected output:
-
-- `/` → `Hello from private EC2!`
-- `/health` → `ok`
 
 ---
 
-### **4. Teardown (Destroy Everything)**
+# 🌐 4. Test Application
+
+Replace `<ALB-DNS>`:
 
 ```
-terraform destroy -auto-approve
+curl http://<ALB-DNS>; echo
 ```
 
-This deletes all created AWS resources.
+Expected:
+```
+Hello from Private EC2 behind ALB!
+```
 
 ---
 
-## Required Screenshots
+# 🧹 5. Destroy Infrastructure
 
-These should be placed inside the `screenshots/` folder.
+```
+terraform destroy
+```
 
-1. **01_alb_details.png**  
-   - EC2 Console → Load Balancers → `asg-alb`  
-   - Capture ALB description: DNS, scheme, subnets.
-
-2. **02_alb_listeners.png**  
-   - ALB → Listeners tab  
-   - Show port 80 listener forwarding to target group.
-
-3. **03_target_group_health.png**  
-   - EC2 → Target Groups → `asg-tg`  
-   - Show instance health status.
-
-4. **04_asg_details.png**  
-   - EC2 → Auto Scaling Groups → `asg-private`  
-   - Show desired instances and running instances.
-
-5. **05_ec2_instance_details.png**  
-   - EC2 → Instances  
-   - Show instance info: private IP, no public IP.
-
-6. **06_vpc_subnets.png**  
-   - VPC Console → Subnets  
-   - Filter by created VPC ID  
-   - Show public + private subnets.
-
-7. **07_ssm_managed_instances.png** (optional)  
-   - Systems Manager → Managed Instances  
-   - Show instance registered with SSM.
+Enter **yes**.
 
 ---
 
-## Notes
-- All infrastructure tested and destroyed to avoid AWS charges.  
-- To redeploy, repeat steps under **"How to Deploy"**.
-- This project demonstrates AWS networking, ALB, ASG, EC2, SSM, IAM, and Terraform IaC skills.
+# 🧪 6. Validate Resources Destroyed
+
+Check Terraform state:
+```
+terraform state list
+```
+Expect:
+```
+(no resources found)
+```
+---
+
+# 📸 7. Screenshots Included
+
+Inside `screenshots/`:
+
+- ALB Listener and Rules
+- VPC subnets
+- Target Group  
+- Private EC2 instances  
+- Health check  
+- Working curl result output
 
 ---
+
+# 🎯 Final Result
+
+A complete, production-style AWS environment built using Terraform, demonstrating:
+
+- AWS networking fundamentals  
+- Infrastructure as Code  
+- Load balancers & target groups  
+- Private subnets + NAT routing  
+- Auto Scaling concepts  
+- IAM role/instance profile setup  
+- Automated app deployment  
